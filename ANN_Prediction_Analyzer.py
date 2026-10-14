@@ -102,6 +102,83 @@ st.info(
     "고급 설정은 왼쪽 사이드바에서 필요할 때만 펼치면 됩니다."
 )
 
+with st.expander("📘 처음 보는 사람을 위한 ANN 핵심 개념", expanded=True):
+    st.markdown(
+        """
+### ANN이란?
+
+인공신경망(Artificial Neural Network, ANN)은 **입력값을 이용해 예측값을 만들고, 실제 정답과의 차이를 줄이도록 Weight와 Bias를 반복해서 수정하는 모델**입니다.
+
+가장 단순하게 보면 다음 과정입니다.
+
+**입력값 → 예측 → 정답과 비교 → 오차 계산 → Weight/Bias 수정 → 다시 예측**
+
+예를 들어 `100 km → 62.137 miles` 관계를 모른다고 가정하면, 처음 Weight가 `0.5`일 때 `100×0.5=50`을 예측합니다. 정답 62.137과 차이가 크므로 Weight를 수정합니다. Weight가 0.6이면 60, 0.62이면 62에 가까워집니다. 실제 ANN은 이 과정을 수많은 Weight와 Bias에 대해 자동으로 수행합니다.
+
+### 신경망 내부에서 하는 계산
+
+**Dense Layer**
+
+`z = XW + b`
+
+- `X` : 입력값(Features)
+- `W` : Weight
+- `b` : Bias
+- `z` : Dense 계산 결과
+
+**Activation Function**
+
+`a = φ(z) = φ(XW+b)`
+
+Activation Function은 Dense의 선형 계산에 비선형성을 추가합니다. ReLU를 선택하면 `a=max(0,z)`가 됩니다.
+
+**Output Layer**에서 최종 예측값 `ŷ`를 만들고, 실제값 `y`와 비교하여 Loss를 계산합니다. Backpropagation은 어떤 Weight/Bias가 Loss에 얼마나 영향을 주었는지 계산하고, Adam Optimizer가 실제 값을 수정합니다.
+        """
+    )
+
+with st.expander("📚 자주 나오는 용어 사전", expanded=False):
+    glossary = pd.DataFrame(
+        [
+            ["Feature", "ANN에 넣는 입력변수 x. 예: BMI, 혈압, 혈당"],
+            ["Target", "ANN이 맞히려고 하는 출력값 y"],
+            ["Input Layer", "Feature를 신경망에 전달하는 입력층"],
+            ["Neuron", "입력에 Weight를 곱하고 Bias를 더한 뒤 Activation을 적용하는 계산 단위"],
+            ["Dense Layer", "이전 층의 모든 출력과 다음 뉴런을 연결하는 완전연결층. z=XW+b 계산"],
+            ["Weight", "각 입력이 다음 뉴런에 미치는 영향의 크기. 학습하면서 바뀜"],
+            ["Bias", "Weight 계산만으로 부족한 부분을 보정하는 학습 파라미터"],
+            ["Activation", "Dense 결과에 비선형성을 주는 함수. 예: ReLU"],
+            ["Loss", "현재 예측이 정답과 얼마나 다른지 나타내는 학습용 오차"],
+            ["Backpropagation", "Loss를 줄이기 위해 각 Weight/Bias가 얼마나 수정되어야 하는지 Gradient를 계산"],
+            ["Adam", "Gradient를 이용해 Weight/Bias를 실제로 갱신하는 Optimizer"],
+            ["Epoch", "Train 데이터 전체를 한 번 학습한 횟수"],
+            ["Batch size", "Weight를 한 번 갱신할 때 사용하는 데이터 묶음 크기"],
+            ["Train", "Weight/Bias를 직접 학습하는 데이터"],
+            ["Validation", "학습 중 과적합 여부와 일반화 성능을 확인하는 데이터"],
+            ["Test", "학습 완료 후 최종 성능을 평가하는 데이터"],
+            ["Standardization", "Feature의 크기를 맞추는 전처리. x'=(x-평균)/표준편차"],
+            ["Overfitting", "Train 데이터는 잘 맞지만 새로운 데이터에는 잘 못 맞는 과적합 상태"],
+            ["Underfitting", "모델이 너무 단순하거나 정보가 부족해 Train/Validation 모두 잘 못 맞는 상태"],
+        ],
+        columns=["용어", "뜻"],
+    )
+    st.dataframe(glossary, use_container_width=True, hide_index=True)
+
+with st.expander("🧪 교수님 실습 권장 순서", expanded=False):
+    st.markdown(
+        """
+1. **실습용 예제 데이터**를 선택합니다.
+2. Target은 `Disease_Progression`, Feature는 기본 3개로 먼저 실행합니다.
+3. Hidden neurons=3으로 학습하여 작은 ANN의 Weight 개수를 확인합니다.
+4. Feature를 더 늘리거나 Hidden neurons를 8→16→32로 바꾸며 Test 성능을 비교합니다.
+5. R²가 올라가고 RMSE/MAE가 내려가는지 확인합니다.
+6. Learning Curve에서 Train Loss와 Validation Loss의 차이를 보고 과적합 여부를 확인합니다.
+7. Weight/Bias 탭에서 실제 학습된 파라미터를 확인합니다.
+8. 마지막으로 새 Feature 값을 입력해 예측합니다.
+
+**중요:** R²는 '맞출 확률'이 아닙니다. 예를 들어 R²=0.52는 52% 확률로 맞는다는 뜻이 아니라, Test 데이터의 Target 변동을 모델이 약 52% 설명한다는 의미입니다.
+        """
+    )
+
 
 # ============================================================
 # HELPERS
@@ -520,6 +597,21 @@ st.info(
     "Validation / Test / 새 입력값에도 Train에서 만든 같은 기준을 적용합니다."
 )
 
+with st.expander("표준화를 왜 하는지 예시로 보기", expanded=False):
+    st.markdown(
+        """
+예를 들어 입력값이 `BMI=30`, `혈압=120`, `콜레스테롤=220`이라면 숫자의 크기가 서로 다릅니다. ANN은 Gradient를 이용해 Weight를 학습하기 때문에 입력 스케일 차이가 너무 크면 학습이 불안정하거나 느려질 수 있습니다.
+
+StandardScaler는 각 Feature를 다음 식으로 변환합니다.
+
+`x' = (x - Train 평균) / Train 표준편차`
+
+변환 후 `0`은 Train 평균과 비슷한 값, `+1`은 평균보다 약 1 표준편차 큰 값, `-1`은 평균보다 약 1 표준편차 작은 값을 의미합니다. 원래 데이터 자체를 없애는 것이 아니라 **ANN에 입력할 때 사용하는 표현을 바꾸는 것**입니다.
+
+또한 평균과 표준편차는 반드시 Train 데이터에서만 계산합니다. Test 데이터까지 포함해 기준을 만들면 시험 문제의 정보를 미리 본 것과 같은 Data Leakage가 발생할 수 있습니다.
+        """
+    )
+
 st.markdown(
     """
 **왜 필요한가?**
@@ -585,6 +677,22 @@ if input_count == 3 and int(hidden_units) == 3:
         "Hidden 3개 × Output 1개 = Weight 3개 구조입니다."
     )
 
+with st.expander("📖 현재 ANN 구조를 읽는 방법", expanded=False):
+    parameter_total = input_count * int(hidden_units) + int(hidden_units) + int(hidden_units) + 1
+    st.markdown(
+        f"""
+현재 선택한 Feature는 **{input_count}개**, Hidden neuron은 **{int(hidden_units)}개**입니다.
+
+- Input→Hidden Weight: `{input_count} × {int(hidden_units)} = {input_count * int(hidden_units)}`개
+- Hidden Bias: `{int(hidden_units)}`개
+- Hidden→Output Weight: `{int(hidden_units)} × 1 = {int(hidden_units)}`개
+- Output Bias: `1`개
+- 따라서 총 Trainable Parameter는 **{parameter_total}개**입니다.
+
+뉴런 수를 늘리면 더 복잡한 관계를 표현할 수 있지만, 데이터가 적은데 모델만 너무 커지면 Train 데이터를 외우는 과적합이 생길 수 있습니다. 반대로 뉴런이 너무 적으면 복잡한 관계를 표현하지 못해 과소적합이 생길 수 있습니다. 그래서 3, 8, 16, 32처럼 여러 후보를 같은 데이터 분할에서 비교해 Validation/Test 성능이 좋은 구조를 선택합니다.
+        """
+    )
+
 
 # ============================================================
 # 4. TRAIN
@@ -605,6 +713,32 @@ st.markdown(
 → **Test 성능평가**
     """
 )
+
+with st.expander("각 학습 단계에서 실제로 무엇을 하는가?", expanded=False):
+    st.markdown(
+        """
+**1) Forward Propagation**  
+현재 Weight/Bias를 사용하여 Input에서 Output 방향으로 계산하고 예측값 `ŷ`를 만듭니다.
+
+**2) MSE Loss**  
+`MSE = 평균((y-ŷ)²)`로 예측과 정답의 차이를 하나의 숫자로 계산합니다.
+
+**3) Backpropagation**  
+Loss를 기준으로 각 Weight/Bias를 조금 바꿨을 때 Loss가 증가하는지 감소하는지 Gradient를 계산합니다.
+
+**4) Adam Optimizer**  
+Gradient를 이용해 실제 Weight/Bias 값을 수정합니다. 사람이 Weight를 0.5→0.6처럼 직접 바꾸는 과정을 Adam이 자동으로 수행한다고 생각하면 됩니다.
+
+**5) Epoch 반복**  
+Train 데이터 전체를 한 번 학습하면 1 Epoch입니다. 여러 Epoch 동안 위 과정을 반복합니다.
+
+**6) Validation 확인**  
+Validation Loss가 더 이상 좋아지지 않으면 과적합을 막기 위해 EarlyStopping이 학습을 종료합니다.
+
+**7) Test 평가**  
+마지막에는 학습에 사용하지 않은 Test 데이터로 R², RMSE, MAE를 계산합니다. Test 데이터는 최종 시험이라고 생각하면 됩니다.
+        """
+    )
 
 if validation_ratio + test_ratio >= 0.50:
     st.error("Validation + Test 비율이 너무 큽니다.")
@@ -751,13 +885,34 @@ if res:
     r3.metric("MAE", f"{m['MAE']:.4f}")
     r4.metric("Trainable Parameters", f"{res['model'].count_params():,}")
 
-    with st.expander("📖 결과 숫자 읽는 법", expanded=True):
+    with st.expander("📖 결과 숫자 읽는 법 — R²는 맞출 확률이 아닙니다", expanded=True):
+        r2_value = m["R2"]
+        explained_text = (
+            f"약 {r2_value * 100:.1f}%의 변동을 설명"
+            if r2_value >= 0
+            else "평균값만 예측하는 기준보다도 성능이 낮음"
+        )
         st.markdown(
-            """
-- **R²**: 실제값의 변화를 얼마나 설명하는지 나타냅니다. 일반적으로 **1에 가까울수록 좋습니다.**
-- **RMSE**: 큰 오차에 더 민감한 평균 예측오차입니다. **작을수록 좋습니다.**
-- **MAE**: 실제값과 예측값의 평균 절대오차입니다. **작을수록 좋습니다.**
-- **Trainable Parameters**: ANN이 학습하는 Weight와 Bias의 총 개수입니다.
+            f"""
+### R² = {r2_value:.4f}
+
+R²는 **적중률이나 확률이 아닙니다.** `R²=0.50`이라고 해서 두 번 중 한 번 맞힌다는 뜻이 아닙니다.
+
+공식은 `R² = 1 - SSE/SST`이며, 현재 Test 데이터에서는 **{explained_text}**한다는 의미로 해석할 수 있습니다. 일반적으로 같은 문제와 같은 Test 데이터에서 더 높은 R²가 더 좋지만, 데이터와 문제 특성에 따라 가능한 수준이 다릅니다.
+
+### RMSE = {m['RMSE']:.4f}
+
+실제값과 예측값의 차이를 제곱해서 평균낸 뒤 제곱근을 취한 값입니다. **Target과 같은 단위**로 표시되고 큰 오차에 더 큰 벌점을 줍니다. 작을수록 좋습니다.
+
+### MAE = {m['MAE']:.4f}
+
+`|실제값-예측값|`의 평균입니다. 현재 모델이 Test 데이터에서 평균적으로 어느 정도 차이를 보이는지 가장 직관적으로 볼 수 있습니다. 작을수록 좋습니다.
+
+### Trainable Parameters = {res['model'].count_params():,}
+
+ANN이 학습을 통해 바꾸는 **Weight와 Bias의 총 개수**입니다. 파라미터가 많으면 복잡한 관계를 표현할 수 있지만, 너무 많으면 과적합 가능성도 커집니다.
+
+**중요:** 좋은 모델은 R² 하나만 높다고 판단하지 않습니다. R², RMSE, MAE, Learning Curve, Residual, Validation 성능을 함께 봅니다.
             """
         )
 
@@ -832,8 +987,8 @@ if res:
 
     with tabs[1]:
         st.info(
-            "Train Loss와 Validation Loss가 함께 감소하면 학습이 정상적으로 진행되는 것입니다. "
-            "Train Loss는 내려가는데 Validation Loss가 다시 올라가면 과적합 가능성이 있습니다."
+            "Train Loss는 실제로 공부한 문제의 오차, Validation Loss는 공부에 직접 쓰지 않은 모의고사의 오차라고 생각하면 됩니다. "
+            "둘이 함께 감소하면 일반화 성능도 좋아지고 있는 것이고, Train Loss만 계속 감소하면서 Validation Loss가 올라가면 과적합 가능성이 있습니다."
         )
 
         hist = res["history"]
@@ -843,6 +998,17 @@ if res:
         q1, q2 = st.columns(2)
         q1.metric("실제 학습 Epoch", n)
         q2.metric("Best Validation Epoch", best_epoch)
+
+        with st.expander("Epoch 숫자는 어떻게 해석하나?", expanded=False):
+            st.markdown(
+                f"""
+- **실제 학습 Epoch = {n}**: EarlyStopping이 최종적으로 학습을 멈춘 시점입니다.
+- **Best Validation Epoch = {best_epoch}**: Validation Loss가 가장 낮았던 시점입니다.
+- 프로그램은 `restore_best_weights=True`를 사용하므로 최종 예측에는 마지막 Epoch의 Weight가 아니라 **Best Validation Epoch의 Weight**를 복원해 사용합니다.
+
+예를 들어 Best Epoch가 91이고 실제 종료가 131이라면, 91 이후 일정 기간 더 지켜봤지만 더 좋은 Validation Loss가 나오지 않아 학습을 종료했다는 뜻입니다.
+                """
+            )
 
         fig = go.Figure()
         fig.add_trace(
@@ -906,8 +1072,8 @@ if res:
 
     with tabs[3]:
         st.info(
-            "ANN이 실제로 비선형 관계를 더 잘 학습했는지 확인하기 위해 "
-            "동일한 Test 데이터에서 Linear Regression과 비교합니다."
+            "ANN이 실제로 복잡한 비선형 관계를 학습해 이득을 얻었는지 확인하기 위해 동일한 Train/Test 분할에서 Linear Regression과 비교합니다. "
+            "ANN이 더 복잡하다는 이유만으로 항상 더 좋은 것은 아닙니다."
         )
 
         comparison = pd.DataFrame(
@@ -920,10 +1086,23 @@ if res:
         )
         st.dataframe(comparison, use_container_width=True, hide_index=True)
 
+        ann_rmse = res["ann_metrics"]["RMSE"]
+        base_rmse = res["base_metrics"]["RMSE"]
+        if ann_rmse < base_rmse:
+            st.success(
+                "현재 Test 데이터에서는 ANN의 RMSE가 Linear Regression보다 낮습니다. "
+                "즉 현재 설정에서는 ANN의 비선형 모델링이 예측 성능에 도움이 된 것으로 볼 수 있습니다."
+            )
+        else:
+            st.warning(
+                "현재 Test 데이터에서는 Linear Regression의 RMSE가 ANN과 같거나 더 낮습니다. "
+                "이 경우 ANN 구조를 바꾸거나, 데이터 관계가 단순한지 확인해야 합니다. 복잡한 모델이 항상 더 좋은 것은 아닙니다."
+            )
+
     with tabs[4]:
         st.info(
-            "Dense Layer에 실제로 학습된 Weight와 Bias입니다. "
-            "Input→Hidden Weight Matrix와 Hidden→Output Weight Matrix를 직접 확인할 수 있습니다."
+            "여기 보이는 값이 ANN이 실제 학습을 통해 찾은 Weight와 Bias입니다. "
+            "Weight는 연결의 영향 크기, Bias는 뉴런 출력의 기준점을 조정하는 값입니다. 값 하나만 보고 중요도를 단정하면 안 되며 전체 네트워크와 표준화를 함께 고려해야 합니다."
         )
 
         hidden = res["model"].get_layer("Dense_Hidden_Layer")
@@ -1028,6 +1207,19 @@ if res:
             else:
                 st.success("모든 입력값이 Train 데이터 범위 안에 있습니다.")
 
+
+st.divider()
+st.subheader("❓ 자주 헷갈리는 질문")
+with st.expander("R²=0.5면 50% 확률로 맞힌다는 뜻인가요?", expanded=False):
+    st.markdown("아닙니다. R²는 확률이 아니라 **설명력**입니다. R²=0.5는 Test 데이터의 Target 변동을 모델이 약 50% 설명한다는 의미입니다.")
+with st.expander("Hidden neuron을 많이 늘리면 무조건 좋아지나요?", expanded=False):
+    st.markdown("아닙니다. 너무 적으면 과소적합, 너무 많으면 과적합이 생길 수 있습니다. 같은 데이터 분할에서 3→8→16→32처럼 비교해 Validation/Test 성능이 좋은 구조를 선택합니다.")
+with st.expander("Feature를 많이 넣으면 무조건 좋아지나요?", expanded=False):
+    st.markdown("아닙니다. Target과 관련 있는 정보가 늘면 도움이 되지만 불필요한 Feature는 잡음을 늘릴 수 있습니다. Feature 조합도 Validation/Test 성능으로 비교합니다.")
+with st.expander("표준화된 값이 실제 측정값인가요?", expanded=False):
+    st.markdown("아닙니다. 표준화된 값은 ANN 학습을 위해 크기를 변환한 값입니다. 원래 값은 그대로 보존되며, 프로그램은 Train 기준으로 변환한 값만 신경망 입력에 사용합니다.")
+with st.expander("Train Loss가 낮으면 좋은 모델인가요?", expanded=False):
+    st.markdown("Train Loss만 낮은 것은 충분하지 않습니다. Validation/Test 성능이 함께 좋아야 합니다. Train만 좋고 Validation이 나쁘면 과적합입니다.")
 
 st.divider()
 st.caption(
