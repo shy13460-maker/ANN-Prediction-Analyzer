@@ -48,6 +48,29 @@ st.markdown(
     padding: 16px 18px;
     margin: 8px 0 18px 0;
 }
+.quick-guide {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+    margin: 12px 0 18px 0;
+}
+.quick-step {
+    border: 1px solid rgba(37, 99, 235, 0.22);
+    border-radius: 14px;
+    padding: 14px 12px;
+    background: rgba(239, 246, 255, 0.70);
+    min-height: 92px;
+}
+.quick-step b {
+    display: block;
+    margin-bottom: 6px;
+}
+.quick-step small {
+    color: #6B7280;
+}
+@media (max-width: 1000px) {
+    .quick-guide { grid-template-columns: repeat(2, 1fr); }
+}
 </style>
 """,
     unsafe_allow_html=True,
@@ -70,6 +93,26 @@ Loss → Backpropagation → Adam → Evaluation → Prediction
 </div>
 """,
     unsafe_allow_html=True,
+)
+
+st.subheader("🚀 처음 사용한다면 이 순서대로")
+st.markdown(
+    """
+<div class="quick-guide">
+  <div class="quick-step"><b>① 데이터 선택</b><small>예제 데이터 또는 CSV/Excel</small></div>
+  <div class="quick-step"><b>② 변수 설정</b><small>Target과 Features 선택</small></div>
+  <div class="quick-step"><b>③ ANN 구조 확인</b><small>Hidden Layer와 Activation 확인</small></div>
+  <div class="quick-step"><b>④ 학습 실행</b><small>버튼 1번으로 학습·평가</small></div>
+  <div class="quick-step"><b>⑤ 결과 분석</b><small>R²·RMSE·MAE·그래프 확인</small></div>
+  <div class="quick-step"><b>⑥ 새 값 예측</b><small>새 Feature를 넣어 Target 예측</small></div>
+</div>
+""",
+    unsafe_allow_html=True,
+)
+
+st.info(
+    "처음 실습할 때는 왼쪽 사이드바의 기본값을 그대로 사용해도 됩니다. "
+    "Dropout, L2, Learning rate 같은 항목은 '고급 설정'에 모아두었습니다."
 )
 
 
@@ -437,111 +480,152 @@ with st.expander("📚 공개된 구현 참고자료", expanded=False):
 # ============================================================
 with st.sidebar:
     st.header("⚙️ ANN 설정")
+    st.caption(
+        "처음에는 기본값 그대로 진행해도 됩니다. "
+        "각 항목의 ⓘ 도움말에서 의미를 확인할 수 있습니다."
+    )
+
+    st.subheader("① 데이터 입력")
 
     data_mode = st.radio(
-        "데이터 입력",
+        "데이터 선택",
         ["실습용 예제 데이터", "CSV / Excel 업로드"],
+        help=(
+            "예제 데이터는 프로그램 사용법을 바로 확인하기 위한 기본 데이터입니다. "
+            "본인의 수치형 데이터가 있다면 CSV/Excel 업로드를 선택하세요."
+        ),
     )
 
     uploaded = None
 
     if data_mode == "CSV / Excel 업로드":
         uploaded = st.file_uploader(
-            "데이터 파일",
+            "데이터 파일 업로드",
             type=["csv", "xlsx", "xls"],
+            help="숫자형 입력변수(Feature)와 예측할 값(Target)이 포함된 파일을 업로드하세요.",
         )
 
     st.divider()
-    st.subheader("Network")
+    st.subheader("② 기본 신경망 설정")
 
     hidden_text = st.text_input(
         "Hidden layers",
         value="64,32",
-        help="예: 64,32 = 64개 뉴런의 은닉층 + 32개 뉴런의 은닉층",
+        help=(
+            "은닉층의 뉴런 수를 쉼표로 구분합니다. "
+            "예: 64,32 = 첫 번째 은닉층 64개 뉴런 + 두 번째 은닉층 32개 뉴런."
+        ),
     )
 
     activation_label = st.selectbox(
-        "Activation",
+        "Activation Function",
         ["ReLU", "tanh", "sigmoid", "ELU"],
         index=0,
+        help=(
+            "Dense의 가중합 z=XW+b에 적용하는 비선형 함수입니다. "
+            "처음 실습에는 ReLU를 권장합니다."
+        ),
     )
 
-    dropout = st.slider(
-        "Dropout",
-        0.00,
-        0.50,
-        0.10,
-        0.05,
+    st.success(
+        "권장 기본값: Hidden layers = 64,32 / Activation = ReLU"
     )
 
-    l2_value = st.select_slider(
-        "L2",
-        options=[0.0, 1e-5, 1e-4, 1e-3, 1e-2],
-        value=1e-4,
-        format_func=lambda x: f"{x:g}",
-    )
+    with st.expander("🔧 고급 설정 — 처음에는 기본값 권장", expanded=False):
+        dropout = st.slider(
+            "Dropout",
+            0.00,
+            0.50,
+            0.10,
+            0.05,
+            help=(
+                "학습 중 일부 뉴런 출력을 임시로 제외해 과적합을 줄입니다. "
+                "0.10은 10%를 의미합니다."
+            ),
+        )
 
-    learning_rate = st.select_slider(
-        "Learning rate",
-        options=[0.0001, 0.0003, 0.001, 0.003, 0.01],
-        value=0.001,
-        format_func=lambda x: f"{x:g}",
-    )
+        l2_value = st.select_slider(
+            "L2 Regularization",
+            options=[0.0, 1e-5, 1e-4, 1e-3, 1e-2],
+            value=1e-4,
+            format_func=lambda x: f"{x:g}",
+            help="Weight가 지나치게 커지는 것을 억제하는 규제입니다.",
+        )
 
-    st.divider()
-    st.subheader("Training")
+        learning_rate = st.select_slider(
+            "Learning rate",
+            options=[0.0001, 0.0003, 0.001, 0.003, 0.01],
+            value=0.001,
+            format_func=lambda x: f"{x:g}",
+            help=(
+                "Adam이 Weight/Bias를 한 번에 얼마나 수정할지 정하는 값입니다. "
+                "너무 크면 불안정하고 너무 작으면 학습이 느립니다."
+            ),
+        )
 
-    scaler_name = st.selectbox(
-        "Scaler",
-        ["StandardScaler", "RobustScaler"],
-    )
+        scaler_name = st.selectbox(
+            "Scaler",
+            ["StandardScaler", "RobustScaler"],
+            help=(
+                "입력변수의 크기를 맞춰 ANN이 안정적으로 학습하도록 합니다. "
+                "일반적인 경우 StandardScaler를 사용하면 됩니다."
+            ),
+        )
 
-    epochs = st.number_input(
-        "Max epochs",
-        50,
-        3000,
-        700,
-        50,
-    )
+        epochs = st.number_input(
+            "Max epochs",
+            50,
+            3000,
+            700,
+            50,
+            help="학습을 반복할 최대 횟수입니다. EarlyStopping으로 더 일찍 종료될 수 있습니다.",
+        )
 
-    batch_size = st.selectbox(
-        "Batch size",
-        [8, 16, 32, 64],
-        index=1,
-    )
+        batch_size = st.selectbox(
+            "Batch size",
+            [8, 16, 32, 64],
+            index=1,
+            help="한 번의 Weight 업데이트에 사용할 데이터 묶음 크기입니다.",
+        )
 
-    patience = st.number_input(
-        "EarlyStopping patience",
-        5,
-        200,
-        40,
-        5,
-    )
+        patience = st.number_input(
+            "EarlyStopping patience",
+            5,
+            200,
+            40,
+            5,
+            help=(
+                "Validation Loss가 이 횟수 동안 좋아지지 않으면 학습을 종료합니다. "
+                "과적합과 불필요한 반복을 줄입니다."
+            ),
+        )
 
-    validation_ratio = st.slider(
-        "Validation ratio",
-        0.10,
-        0.25,
-        0.15,
-        0.05,
-    )
+        validation_ratio = st.slider(
+            "Validation ratio",
+            0.10,
+            0.25,
+            0.15,
+            0.05,
+            help="학습 중 모델 상태를 확인하기 위해 따로 보관할 데이터 비율입니다.",
+        )
 
-    test_ratio = st.slider(
-        "Test ratio",
-        0.10,
-        0.30,
-        0.20,
-        0.05,
-    )
+        test_ratio = st.slider(
+            "Test ratio",
+            0.10,
+            0.30,
+            0.20,
+            0.05,
+            help="학습이 끝난 뒤 최종 성능을 평가하는 데이터 비율입니다.",
+        )
 
-    seed = st.number_input(
-        "Random seed",
-        0,
-        9999,
-        42,
-        1,
-    )
-
+        seed = st.number_input(
+            "Random seed",
+            0,
+            9999,
+            42,
+            1,
+            help="같은 조건에서 데이터 분할과 초기화를 재현하기 위한 값입니다.",
+        )
 
 # ============================================================
 # Data load
@@ -583,9 +667,10 @@ with left:
     )
 
     target_col = st.selectbox(
-        "Target",
+        "예측할 값 (Target)",
         numeric_cols,
         index=default_target,
+        help="ANN이 최종적으로 예측해야 하는 출력값 y를 선택합니다.",
     )
 
 with right:
@@ -595,9 +680,10 @@ with right:
     ]
 
     feature_cols = st.multiselect(
-        "Features",
+        "입력 변수 (Features)",
         feature_candidates,
         default=feature_candidates,
+        help="Target을 예측하기 위해 ANN에 입력할 변수 x1, x2, ... 를 선택합니다.",
     )
 
 if not feature_cols:
@@ -664,7 +750,7 @@ architecture = architecture_table(
     dropout=float(dropout),
 )
 
-st.subheader("2. ANN 구조")
+st.subheader("2. ANN 구조 확인")
 
 st.dataframe(
     architecture,
@@ -672,8 +758,9 @@ st.dataframe(
     hide_index=True,
 )
 
-st.caption(
-    "Dense layer는 z = XW + b를 계산하고, 그 다음 Activation layer가 비선형 변환을 수행합니다."
+st.info(
+    "표를 위에서 아래로 읽으면 현재 ANN의 실제 계산 순서입니다. "
+    "Dense Layer는 z = XW + b를 계산하고, Activation Layer는 a = φ(z)를 계산합니다."
 )
 
 
@@ -682,12 +769,17 @@ st.caption(
 # ============================================================
 st.subheader("3. ANN 학습")
 
+st.info(
+    "아래 버튼을 누르면 데이터 분리 → Scaling → 순전파 → MSE 계산 → "
+    "Backpropagation → Adam으로 Weight/Bias 갱신 → Test 평가까지 자동으로 수행합니다."
+)
+
 if validation_ratio + test_ratio >= 0.50:
     st.error("Validation + Test 비율이 너무 큽니다.")
     st.stop()
 
 if st.button(
-    "▶ ANN 학습 및 평가 실행",
+    "▶ ④ ANN 학습 및 평가 실행",
     type="primary",
     use_container_width=True,
 ):
@@ -898,6 +990,16 @@ if res:
         "최종 평가는 학습에 사용하지 않은 Test 데이터 기준"
     )
 
+    with st.expander("📖 결과 숫자 읽는 법", expanded=True):
+        st.markdown(
+            """
+- **R²**: 모델이 실제값의 변화를 얼마나 설명하는지 나타냅니다. 일반적으로 **1에 가까울수록 좋습니다.**
+- **RMSE**: 예측 오차의 크기를 나타내며 큰 오차에 더 민감합니다. **작을수록 좋습니다.**
+- **MAE**: 실제값과 예측값의 평균 절대오차입니다. **작을수록 좋습니다.**
+- **Trainable Parameters**: ANN이 학습해야 하는 Weight와 Bias의 총 개수입니다. 많다고 무조건 좋은 것은 아닙니다.
+        """
+        )
+
     tabs = st.tabs(
         [
             "📈 예측 성능",
@@ -911,6 +1013,10 @@ if res:
     )
 
     with tabs[0]:
+        st.info(
+            "Actual vs Predicted에서는 점들이 대각선 y=x에 가까울수록 예측이 잘 된 것입니다. "
+            "Residual Plot에서는 점들이 0선을 중심으로 무작위로 퍼질수록 좋습니다."
+        )
         rdf = res["result_df"]
 
         c1, c2 = st.columns(2)
@@ -995,6 +1101,10 @@ if res:
         )
 
     with tabs[1]:
+        st.info(
+            "Train Loss와 Validation Loss가 함께 감소하면 정상적으로 학습되는 것입니다. "
+            "Train Loss는 계속 감소하는데 Validation Loss가 다시 증가하면 과적합 가능성이 있습니다."
+        )
         history = res["history"]
         n_epochs = len(history["loss"])
         best_epoch = int(
@@ -1042,6 +1152,10 @@ if res:
         )
 
     with tabs[2]:
+        st.info(
+            "ANN과 Linear Regression을 같은 Test 데이터에서 비교합니다. "
+            "R²는 높을수록, RMSE와 MAE는 낮을수록 좋은 결과입니다."
+        )
         compare_df = pd.DataFrame(
             {
                 "Model": [
@@ -1074,6 +1188,10 @@ if res:
         )
 
     with tabs[3]:
+        st.info(
+            "Feature Importance는 특정 입력변수를 섞었을 때 예측 성능이 얼마나 나빠지는지로 계산합니다. "
+            "값이 클수록 현재 모델이 그 Feature에 더 민감하다는 뜻이며 인과관계를 의미하지는 않습니다."
+        )
         imp = res["importance_df"].copy()
 
         fig = go.Figure(
@@ -1118,6 +1236,10 @@ if res:
         )
 
     with tabs[4]:
+        st.info(
+            "ANN 내부에서는 실제로 학습된 Dense Layer의 Weight와 Bias를 확인할 수 있습니다. "
+            "Weight Matrix의 크기는 이전 Layer 뉴런 수 × 다음 Layer 뉴런 수입니다."
+        )
         st.dataframe(
             res["architecture"],
             use_container_width=True,
@@ -1159,6 +1281,10 @@ if res:
                         )
 
     with tabs[5]:
+        st.info(
+            "학습이 끝난 모델에 새로운 Feature 값을 넣어 Target을 예측합니다. "
+            "Train 범위를 벗어난 값은 외삽이므로 신뢰도가 낮을 수 있어 경고를 표시합니다."
+        )
         st.markdown("### 새로운 입력값 예측")
 
         train_df = pd.DataFrame(
@@ -1187,7 +1313,7 @@ if res:
                 )
 
         if st.button(
-            "🔮 예측 실행",
+            "🔮 새 데이터 예측 실행",
             type="primary",
         ):
             new_x = np.array(
@@ -1244,6 +1370,10 @@ if res:
                 )
 
     with tabs[6]:
+        st.info(
+            "분석 결과 Excel에는 Test 예측값·평가지표·ANN 구조·Feature Importance가 저장되고, "
+            "JSON에는 모델 설정값이 저장됩니다."
+        )
         settings = {
             "target": res["target_col"],
             "features": res["feature_cols"],
