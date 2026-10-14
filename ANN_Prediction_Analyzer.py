@@ -260,7 +260,7 @@ with st.expander("📚 자주 나오는 용어 사전", expanded=False):
     )
     st.dataframe(glossary, use_container_width=True, hide_index=True)
 
-with st.expander("🧪 교수님 실습 권장 순서", expanded=False):
+with st.expander("🧪 실습 권장 순서", expanded=False):
     st.markdown(
         """
 1. **실습용 예제 데이터**를 선택합니다.
