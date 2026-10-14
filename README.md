@@ -89,4 +89,3 @@ python -m streamlit run ANN_Prediction_Analyzer.py
 - Main file: `ANN_Prediction_Analyzer.py`
 - Python: 3.12 권장
 
-배포된 Streamlit 주소를 Notion `/embed` 블록에 넣으면 웹에서 바로 실습할 수 있습니다.
