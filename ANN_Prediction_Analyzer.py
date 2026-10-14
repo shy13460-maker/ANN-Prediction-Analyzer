@@ -102,6 +102,103 @@ st.info(
     "고급 설정은 왼쪽 사이드바에서 필요할 때만 펼치면 됩니다."
 )
 
+
+st.header("📌 이 프로그램은 무엇을 하는가?")
+
+st.markdown(
+    """
+**ANN Prediction Analyzer**는 특정 데이터 한 종류만 분석하는 프로그램이 아니라,
+사용자가 수치형 데이터를 넣고 **ANN 회귀 모델을 직접 구성·학습·평가·예측**할 수 있도록 만든 실습형 웹 프로그램입니다.
+
+프로그램에서 사용자는 다음 작업을 수행합니다.
+
+1. **데이터 준비**  
+   내장 예제 데이터를 사용하거나 CSV / Excel 파일을 직접 업로드합니다.
+
+2. **예측 문제 정의**  
+   무엇을 예측할지 `Target`으로 선택하고, 예측에 사용할 입력정보를 `Features`로 선택합니다.
+
+3. **ANN 구조 설정**  
+   Hidden neuron 수와 Activation Function을 선택하여 신경망의 크기와 계산 구조를 정합니다.
+
+4. **자동 전처리 및 학습**  
+   프로그램이 데이터를 Train / Validation / Test로 나누고, Train 기준 표준화를 수행한 뒤 ANN을 학습합니다.
+
+5. **모델 평가**  
+   학습에 사용하지 않은 Test 데이터에서 R², RMSE, MAE와 그래프를 이용해 예측성능을 확인합니다.
+
+6. **모델 내부 확인**  
+   실제 학습된 Weight / Bias와 표준화 전후 데이터를 확인할 수 있습니다.
+
+7. **새로운 데이터 예측**  
+   학습이 끝난 모델에 새로운 Feature 값을 넣어 Target을 예측합니다.
+
+**즉, 이 프로그램의 핵심은**  
+`데이터 입력 → ANN 구성 → 학습 → 성능평가 → 내부 파라미터 확인 → 새 데이터 예측`
+을 하나의 웹 화면에서 직접 실습하는 것입니다.
+    """
+)
+
+with st.expander("🗺️ 프로그램 화면은 이렇게 구성되어 있습니다", expanded=True):
+    screen_table = pd.DataFrame(
+        [
+            ["왼쪽 사이드바", "데이터 종류, Hidden neuron, Activation, Learning rate 등 ANN 설정"],
+            ["1. 데이터 확인", "Target / Features 선택, 실제 분석 데이터 확인 및 CSV 다운로드"],
+            ["2. 표준화", "ANN에 넣기 전에 데이터 크기를 맞추는 이유와 처리 방법 설명"],
+            ["3. ANN 구조 확인", "현재 선택한 Feature 수, Hidden neuron 수, Weight 개수를 표로 확인"],
+            ["4. ANN 학습 및 평가", "버튼을 눌러 데이터 분리부터 학습·Test 평가까지 실행"],
+            ["5. 결과 분석", "R², RMSE, MAE, Learning Curve, 표준화, Baseline, Weight/Bias 확인"],
+            ["새 데이터 예측 탭", "새 Feature 값을 넣어 학습된 ANN의 예측값 확인"],
+        ],
+        columns=["화면", "무엇을 하는 곳인가"],
+    )
+    st.dataframe(screen_table, use_container_width=True, hide_index=True)
+
+with st.expander("▶️ 'ANN 학습 및 평가 실행' 버튼을 누르면 실제로 무엇을 하나?", expanded=True):
+    st.markdown(
+        """
+버튼 한 번으로 다음 작업이 순서대로 실행됩니다.
+
+**① 선택한 Feature와 Target을 배열로 변환**  
+→ **② Train / Validation / Test로 분리**  
+→ **③ Train 데이터만 이용해 StandardScaler 학습**  
+→ **④ Train / Validation / Test를 같은 기준으로 표준화**  
+→ **⑤ Input → Dense → Activation → Output 구조의 ANN 생성**  
+→ **⑥ Forward Propagation으로 예측값 계산**  
+→ **⑦ 실제값과 비교해 MSE Loss 계산**  
+→ **⑧ Backpropagation으로 각 Weight/Bias의 Gradient 계산**  
+→ **⑨ Adam Optimizer가 Weight/Bias 수정**  
+→ **⑩ 여러 Epoch 반복**  
+→ **⑪ Validation Loss를 감시하고 EarlyStopping 적용**  
+→ **⑫ 가장 좋았던 Weight 복원**  
+→ **⑬ Test 데이터로 R² / RMSE / MAE 계산**  
+→ **⑭ 그래프와 표로 결과 표시**
+
+즉 이 버튼은 단순히 '예측'만 하는 버튼이 아니라,
+**전처리 → 모델 생성 → 학습 → 검증 → 최종 평가** 전체 과정을 실행하는 버튼입니다.
+        """
+    )
+
+with st.expander("📊 결과 탭은 각각 무엇을 보여주나?", expanded=True):
+    result_table = pd.DataFrame(
+        [
+            ["예측 성능", "실제값과 예측값이 얼마나 가까운지 확인. Actual vs Predicted / Residual 제공"],
+            ["학습 과정", "Epoch에 따라 Train Loss / Validation Loss가 어떻게 변했는지 확인"],
+            ["표준화 확인", "원래 입력값과 ANN에 실제로 들어간 표준화 값 비교"],
+            ["선형모델 비교", "ANN이 단순 Linear Regression보다 실제로 나은지 비교"],
+            ["Weight / Bias", "ANN이 학습을 통해 찾은 실제 파라미터 확인"],
+            ["새 데이터 예측", "학습에 없던 새로운 Feature 값을 입력해 Target 예측"],
+        ],
+        columns=["탭", "확인하는 내용"],
+    )
+    st.dataframe(result_table, use_container_width=True, hide_index=True)
+
+st.info(
+    "내장 Diabetes 데이터는 이 프로그램의 '주제'가 아니라 ANN 학습·평가 기능을 바로 확인하기 위한 실습용 예제입니다. "
+    "CSV / Excel을 업로드하면 같은 프로그램을 다른 수치형 회귀 데이터에도 사용할 수 있습니다."
+)
+
+
 with st.expander("📘 처음 보는 사람을 위한 ANN 핵심 개념", expanded=True):
     st.markdown(
         """
@@ -518,6 +615,19 @@ else:
 
 st.subheader("1. 데이터 확인")
 
+st.markdown(
+    """
+여기서는 **이번 ANN이 무엇을 예측할지 정의**합니다.
+
+- **Target** = ANN이 맞혀야 하는 최종 출력값
+- **Features** = Target을 예측하기 위해 ANN에 넣는 입력정보
+
+예를 들어 Target을 `Disease_Progression`으로 두고 Features를 `BMI`, `Blood_Pressure`, `Blood_Sugar`로 선택하면,
+프로그램은 **세 입력값을 이용해 Disease_Progression을 예측하는 ANN**을 만듭니다.
+    """
+)
+
+
 numeric_cols = numeric_columns(df)
 if len(numeric_cols) < 2:
     st.error("숫자형 열이 최소 2개 필요합니다.")
@@ -627,6 +737,14 @@ st.markdown(
 # ============================================================
 st.subheader("3. ANN 구조 확인")
 
+st.markdown(
+    """
+이 표는 **현재 사용자가 선택한 설정으로 실제 만들어질 ANN 구조**입니다.
+Feature 수가 바뀌면 Input 개수가 바뀌고, Hidden neurons 값을 바꾸면 Dense Hidden Layer의 뉴런 수와 Weight 개수도 자동으로 바뀝니다.
+    """
+)
+
+
 input_count = len(feature_cols)
 input_hidden_weights = input_count * int(hidden_units)
 hidden_output_weights = int(hidden_units) * 1
@@ -698,6 +816,14 @@ with st.expander("📖 현재 ANN 구조를 읽는 방법", expanded=False):
 # 4. TRAIN
 # ============================================================
 st.subheader("4. ANN 학습 및 평가")
+
+st.markdown(
+    """
+이 단계부터는 **설명 화면이 아니라 실제 모델 학습**이 수행됩니다.
+현재 선택한 Target, Features, Hidden neuron, Activation 및 고급 설정을 이용해 새로운 ANN을 생성한 뒤 학습합니다.
+    """
+)
+
 
 st.markdown(
     """
